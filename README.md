@@ -21,22 +21,60 @@ pip install pydataform
 
 ## Authentication
 
-The library uses Google Cloud's default authentication mechanism. There are several ways to authenticate:
+The library supports multiple authentication methods through the Google Cloud client:
 
-1. **Service Account (Recommended for Production)**
-   ```bash
-   # Set the path to your service account key file
-   export GOOGLE_APPLICATION_CREDENTIALS="/path/to/service-account-key.json"
+1. **Default Authentication (Recommended for Development)**
+   ```python
+   # Uses default credentials from:
+   # - gcloud auth application-default login
+   # - GOOGLE_APPLICATION_CREDENTIALS environment variable
+   # - Google Cloud metadata server (when running on GCP)
+   from pydataform import DataformConfig, DataformService
+   
+   config = DataformConfig(project_id="your-project-id")
+   service = DataformService(config)  # Client is created automatically
    ```
 
-2. **User Credentials (Development)**
-   ```bash
-   # Login with your Google account
-   gcloud auth application-default login
+2. **Service Account Key File**
+   ```python
+   from pydataform import DataformConfig, DataformService
+   from google.cloud import dataform_v1beta1
+   
+   # Load credentials from file
+   with open("/path/to/service-account-key.json", "r") as f:
+       import json
+       credentials = json.load(f)
+   
+   # Create client with credentials
+   client = dataform_v1beta1.DataformClient.from_service_account_info(credentials)
+   
+   # Use client with service
+   config = DataformConfig(project_id="your-project-id")
+   service = DataformService(config, client=client)
    ```
 
-3. **Compute Engine/Cloud Run (Automatic)**
-   If running on Google Cloud Platform services, authentication is handled automatically.
+3. **Service Account Key Content**
+   ```python
+   from pydataform import DataformConfig, DataformService
+   from google.cloud import dataform_v1beta1
+   
+   # Service account key as dictionary
+   service_account_key = {
+       "type": "service_account",
+       "project_id": "your-project-id",
+       "private_key_id": "key-id",
+       "private_key": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n",
+       "client_email": "service-account@your-project-id.iam.gserviceaccount.com",
+       # ... other fields ...
+   }
+   
+   # Create client with credentials
+   client = dataform_v1beta1.DataformClient.from_service_account_info(service_account_key)
+   
+   # Use client with service
+   config = DataformConfig(project_id="your-project-id")
+   service = DataformService(config, client=client)
+   ```
 
 For more information about authentication, see the [Google Cloud Authentication documentation](https://cloud.google.com/docs/authentication).
 
@@ -54,6 +92,7 @@ config = DataformConfig(
 )
 
 # Create a Dataform service instance
+# The client will be created automatically using default authentication
 service = DataformService(config)
 
 # Run a workflow and wait for completion

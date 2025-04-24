@@ -195,14 +195,15 @@ class DataformWorkflow:
 class DataformService:
     """Service for managing Dataform operations."""
     
-    def __init__(self, config: DataformConfig):
+    def __init__(self, config: DataformConfig, client: Optional[dataform_v1beta1.DataformClient] = None):
         """Initialize the Dataform service.
         
         Args:
             config: Dataform configuration
+            client: Optional DataformClient instance. If not provided, a default client will be created.
         """
         self.config = config
-        self.client = dataform_v1beta1.DataformClient()
+        self.client = client or dataform_v1beta1.DataformClient()
         self.latest_workflow = None
     
     def compile(self, params: Optional[Dict[str, str]] = None, schema_suffix: Optional[str] = None) -> str:
